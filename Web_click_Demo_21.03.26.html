@@ -1,0 +1,442 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!-- saved from url=(0057)file:///C:/Users/user/Downloads/sample_html/calendar.html -->
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>BrainJar.com: Calendar Demo</title>
+
+<link href="file:///C:/common/default.css" rel="stylesheet" type="text/css">
+<style type="text/css">
+
+/* Stylings for the calendar display. */
+
+#calendar {
+  border-collapse: collapse;
+  border-spacing: 1px;
+  margin: 0px;
+  padding: 0px;
+}
+
+#calendar tr.header th {
+  background-color: #008080;
+  color: #ffffff;
+  text-align: center;
+}
+
+#calendar tr.days th {
+  background-color: #80c0c0;
+  width: 2.2em;
+  text-align: center;
+}
+
+#calendar tr.footer td {
+  border: none;
+  padding: 6px 0px 4px 0px;
+}
+
+#calendar td, #calendar th {
+  border: 1px solid #000000;
+  color: #000000;
+  empty-cells: show;
+  padding: 2px .25em 2px .25em;
+}
+
+#calendar td {
+  text-align: right;
+}
+
+#calendar td.weekend {
+  background-color: #e0f0f0;
+}
+
+#calendar td.target {
+  background-color: #ffffe0;
+  font-weight: bold;
+}
+
+#calendar a, #calendar a:visited {
+  color: #008080;
+  text-decoration: none;
+}
+
+#calendar a:hover {
+  color: #0000ff;
+  text-decoration: none;
+}
+
+#calendar a.button {
+  background-color: #80c0c0;
+  border: 2px solid;
+  border-color: #a0e0e0 #509090 #509090 #a0e0e0;
+  color: #000000;
+  font-size: 80%;
+  font-weight: bold;
+  padding: 2px .5em 2px .5em;
+  text-decoration: none;
+}
+
+#calendar a.button:visited, #calendar a.button:hover {
+  color: #000000;
+  text-decoration: none;
+}
+
+</style>
+<script type="text/javascript">//<![CDATA[
+
+//*****************************************************************************
+// Do not remove this notice.
+//
+// Copyright 2001 by Mike Hall.
+// See http://www.brainjar.com for terms of use.
+//*****************************************************************************
+
+//============================================================================
+// This code handles the calendar display and interaction.
+//============================================================================
+
+// Default target date to today.
+
+var targetDate = new Date();
+
+// Initialize the calendar display once the page loads.
+
+window.onload = setCalendar;
+
+//----------------------------------------------------------------------------
+// This function updates the calendar display to reflect the current target
+// date.
+//----------------------------------------------------------------------------
+
+function setCalendar(event) {
+
+  var el, tableEl, rowEl, cellEl, linkEl;
+  var tmpDate, tmpDate2;
+  var i, j;
+
+  // Update month name.
+
+  el = document.getElementById("calendarHeader").firstChild;
+  el.nodeValue = targetDate.getMonthName() + "\u00a0" + targetDate.getFullYear();
+
+  // Start with the first day of the month and go back if necessary to
+  // the previous Sunday.
+
+  tmpDate = new Date(Date.parse(targetDate));
+  tmpDate.setDate(1);
+  while (tmpDate.getDay() != 0) {
+    tmpDate.addDays(-1);
+  }
+
+  // Go through each calendar day cell in the table and update it.
+
+  tableEl = document.getElementById("calendar");
+  for (i = 2; i <= 7; i++) {
+    rowEl = tableEl.rows[i];
+
+    // Hide row if it contains no dates in the current month.
+
+    tmpDate2 = new Date(Date.parse(tmpDate));
+    tmpDate2.addDays(6);
+    if (tmpDate.getMonth()  != targetDate.getMonth() &&
+        tmpDate2.getMonth() != targetDate.getMonth()) {
+      rowEl.style.visibility = "hidden";
+      if (document.all)
+        for (j = 0; j < rowEl.cells.length; j++)
+          rowEl.cells[j].style.borderStyle = "none";
+    }
+    else {
+      rowEl.style.visibility = "";
+      if (document.all)
+        for (j = 0; j < rowEl.cells.length; j++)
+          rowEl.cells[j].style.borderStyle = "";
+    }
+
+    // Loop through a week.
+
+    for (j = 0; j < rowEl.cells.length; j++) {
+      cellEl = rowEl.cells[j];
+      linkEl = cellEl.firstChild;
+
+      if (tmpDate.getMonth() == targetDate.getMonth()) {
+        linkEl.date = new Date(Date.parse(tmpDate));
+        s = tmpDate.toString().split(" ");
+        linkEl.title = s[0] + " " + s[1] + " " + s[2] + ", " + s[s.length - 1];
+        linkEl.firstChild.nodeValue = tmpDate.getDate();
+        linkEl.style.visibility = "";
+      }
+      else
+        linkEl.style.visibility = "hidden";
+
+      // Highlight the current date.
+
+      if (cellEl.oldClass == null)
+        cellEl.oldClass = cellEl.className;
+      if (Date.parse(tmpDate) == Date.parse(targetDate))
+        cellEl.className = cellEl.oldClass + " target";
+      else
+        cellEl.className = cellEl.oldClass;
+
+      // Go to the next day.
+
+      tmpDate.addDays(1);
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+// Event handlers for the calendar elements.
+//----------------------------------------------------------------------------
+
+function addMonths(event, n) {
+
+  // Advance the calendar month and update the display.
+
+  targetDate.addMonths(n);
+  setCalendar(event);
+}
+
+function addYears(event, n) {
+
+  // Advance the calendar year and update the display.
+
+  targetDate.addYears(n);
+  setCalendar(event);
+}
+
+function setTargetDate(event, link) {
+
+  // Change the target date and update the calendar.
+
+  if (link.date != null) {
+    targetDate = new Date(Date.parse(link.date));
+    setCalendar(event);
+  }
+}
+
+function displayDate(event) {
+
+  // Display the current target date as a formatted string.
+
+  alert(formatDate(targetDate));
+}
+
+function formatDate() {
+
+  var mm, dd, yyyy;
+
+  // Return the target date in "mm/dd/yyyy" format.
+
+  mm = String(targetDate.getMonth() + 1);
+  while (mm.length < 2)
+    mm = "0" + mm;
+  dd = String(targetDate.getDate());
+  while (dd.length < 2)
+    dd = "0" + dd;
+  yyyy = String(targetDate.getFullYear());
+  while (yyyy.length < 4)
+    yyyy = "0" + yyyy;
+
+  return mm + "/" + dd + "/" + yyyy;
+}
+
+//============================================================================
+// Add new properties and methods to the Date object.
+//============================================================================
+
+// Properties
+
+Date.prototype.monthNames = new Array("January", "February", "March", "April",
+  "May", "June", "July", "August", "September", "October", "November",
+  "December");
+Date.prototype.savedDate  = null;
+
+// Methods
+
+Date.prototype.getMonthName = dateGetMonthName;
+Date.prototype.getDays      = dateGetDays;
+Date.prototype.addDays      = dateAddDays;
+Date.prototype.addMonths    = dateAddMonths;
+Date.prototype.addYears     = dateAddYears;
+
+//----------------------------------------------------------------------------
+// getMonthName(): Returns the name of the date's month.
+//----------------------------------------------------------------------------
+
+function dateGetMonthName() {
+
+  return this.monthNames[this.getMonth()];
+}
+
+//----------------------------------------------------------------------------
+// getDays(): Returns the number of days in the date's month.
+//----------------------------------------------------------------------------
+
+function dateGetDays() {
+
+  var tmpDate, d, m;
+
+  tmpDate = new Date(Date.parse(this));
+  m = tmpDate.getMonth();
+  d = 28;
+  do {
+    d++;
+    tmpDate.setDate(d);
+  } while (tmpDate.getMonth() == m);
+
+  return d - 1;
+}
+
+//----------------------------------------------------------------------------
+// addDays(n): Adds the specified number of days to the date.
+//----------------------------------------------------------------------------
+
+function dateAddDays(n) {
+
+  // Add the specified number of days.
+
+  this.setDate(this.getDate() + n);
+
+  // Reset the new day of month.
+
+  this.savedDate = this.getDate();
+}
+
+//----------------------------------------------------------------------------
+// addMonths(n): Adds the specified number of months to the date, adjusting
+// the day of the month if necessary.
+//----------------------------------------------------------------------------
+
+function dateAddMonths(n) {
+
+  // Save the day of month if not already set.
+
+  if (this.savedDate == null)
+    this.savedDate = this.getDate();
+
+  // Set the day of month to the first to avoid rolling.
+
+  this.setDate(1);
+
+  // Add the specified number of months.
+
+  this.setMonth(this.getMonth() + n);
+
+  // Restore the saved day of month, if possible.
+
+  this.setDate(Math.min(this.savedDate, this.getDays()));
+}
+
+//----------------------------------------------------------------------------
+// addYears(n): Adds the specified number of years to the date, adjusting the
+// day of the month for leap years.
+//----------------------------------------------------------------------------
+
+function dateAddYears(n) {
+
+  // Save the day of month if not already set.
+
+  if (this.savedDate == null)
+    this.savedDate = this.getDate();
+
+  // Set the day of month to the first to avoid rolling.
+
+  this.setDate(1);
+
+  // Add the specified number of years.
+
+  this.setFullYear(this.getFullYear() + n);
+
+  // Restore the saved day of month, if possible.
+
+  this.setDate(Math.min(this.savedDate, this.getDays()));
+}
+
+//]]></script>
+<meta name="generator" content="Namo WebEditor v5.0(Trial)">
+</head>
+<body>
+
+<p align="center">&nbsp;</p>
+<table id="calendar" align="center">
+<tbody><tr class="header">
+  <th id="calendarHeader" colspan="7">클릭해주세요</th>
+</tr>
+<tr class="days">
+  <th><a href="https://blog.naver.com/ddangen83/222281050357" target="_blank"><img src="./web_cleck_Demo_21.03.26_files/install_google_white.png" width="145"></a></th>
+  <th>Mon</th>
+  <th>Tue</th>
+  <th>Wed</th>
+  <th>Thu</th>
+  <th>Fri</th>
+  <th>Sat</th>
+</tr>
+<tr>
+  <td class="weekend"><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" style="visibility: hidden;">&nbsp;</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Mon Mar 01, 표준시)">1</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Tue Mar 02, 표준시)">2</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Wed Mar 03, 표준시)">3</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Thu Mar 04, 표준시)">4</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Fri Mar 05, 표준시)">5</a></td>
+  <td class="weekend"><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Sat Mar 06, 표준시)">6</a></td>
+</tr>
+<tr>
+  <td class="weekend"><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Sun Mar 07, 표준시)">7</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Mon Mar 08, 표준시)">8</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Tue Mar 09, 표준시)">9</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Wed Mar 10, 표준시)">10</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Thu Mar 11, 표준시)">11</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Fri Mar 12, 표준시)">12</a></td>
+  <td class="weekend"><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Sat Mar 13, 표준시)">13</a></td>
+</tr>
+<tr>
+  <td class="weekend"><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Sun Mar 14, 표준시)">14</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Mon Mar 15, 표준시)">15</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Tue Mar 16, 표준시)">16</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Wed Mar 17, 표준시)">17</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Thu Mar 18, 표준시)">18</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Fri Mar 19, 표준시)">19</a></td>
+  <td class="weekend"><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Sat Mar 20, 표준시)">20</a></td>
+</tr>
+<tr>
+  <td class="weekend"><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Sun Mar 21, 표준시)">21</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Mon Mar 22, 표준시)">22</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Tue Mar 23, 표준시)">23</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Wed Mar 24, 표준시)">24</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Thu Mar 25, 표준시)">25</a></td>
+  <td class=" target"><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Fri Mar 26, 표준시)">26</a></td>
+  <td class="weekend"><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Sat Mar 27, 표준시)">27</a></td>
+</tr>
+<tr>
+  <td class="weekend"><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Sun Mar 28, 표준시)">28</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Mon Mar 29, 표준시)">29</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Tue Mar 30, 표준시)">30</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" title="Wed Mar 31, 표준시)">31</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" style="visibility: hidden;">&nbsp;</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" style="visibility: hidden;">&nbsp;</a></td>
+  <td class="weekend"><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" style="visibility: hidden;">&nbsp;</a></td>
+</tr>
+<tr style="visibility: hidden;">
+  <td class="weekend"><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" style="visibility: hidden;">&nbsp;</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" style="visibility: hidden;">&nbsp;</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" style="visibility: hidden;">&nbsp;</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" style="visibility: hidden;">&nbsp;</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" style="visibility: hidden;">&nbsp;</a></td>
+  <td class=""><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" style="visibility: hidden;">&nbsp;</a></td>
+  <td class="weekend"><a href="file:///C:/Users/user/Downloads/sample_html/calendar.html" onclick="setTargetDate(event, this); return false;" style="visibility: hidden;">&nbsp;</a></td>
+</tr>
+<tr class="footer">
+  <td colspan="2" style="text-align:left;">
+    <a class="button" href="file:///C:/Users/user/Downloads/sample_html/calendar.html" title="Previous year." onclick="addYears(event, -1); return false;">&lt;&lt;</a>
+    <a class="button" href="file:///C:/Users/user/Downloads/sample_html/calendar.html" title="Previous month." onclick="addMonths(event, -1); return false;">&lt;</a>
+  </td>
+  <td colspan="3" style="text-align:center;">
+    <a class="button" href="file:///C:/Users/user/Downloads/sample_html/calendar.html" title="Use the highlighted date." onclick="displayDate(event); return false;">Select</a>
+    <a class="button" href="file:///C:/Users/user/Downloads/sample_html/calendar.html" title="Reset calendar to current date." onclick="targetDate = new Date(); setCalendar(event); return false;">Reset</a>
+  </td>
+  <td colspan="2" style="text-align:right;">
+    <a class="button" href="file:///C:/Users/user/Downloads/sample_html/calendar.html" title="Next month." onclick="addMonths(event, 1); return false;">&gt;</a>
+    <a class="button" href="file:///C:/Users/user/Downloads/sample_html/calendar.html" title="Next year." onclick="addYears(event, 1); return false;">&gt;&gt;</a>
+  </td>
+</tr>
+</tbody></table>
+
+
+</body></html>
